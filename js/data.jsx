@@ -109,8 +109,8 @@ function useStoreState() {
     },
 
     // —— 歌单 ——
-    addPlaylist({ name, note, tags }) {
-      const pl = { id: nid(), name, note: note || '', tags: tags || [], createdAt: now(), songs: [] };
+    addPlaylist({ name, note, tags, cover }) {
+      const pl = { id: nid(), name, note: note || '', tags: tags || [], cover: cover || '', createdAt: now(), songs: [] };
       setState(s => ({ ...s, playlists: [...s.playlists, pl] }));
       return pl.id;
     },
