@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="WhatSong">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="description" content="个人KTV歌单记录册，记录演唱、管理歌单、趣味玩法">
+<meta name="creative-medium" content="interactive-prototype">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>WhatSong｜KTV 歌单管理</title>
+<link rel="manifest" href="manifest.json?v=3">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg?v=3">
+<link rel="apple-touch-icon" href="icons/icon.svg?v=3">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Sans+SC:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ink:#111111;
+  --ink-2:#555555;
+  --line:#111111;
+  --line-2:#D9D9D9;
+  --line-3:#EDEDED;
+  --bg:#FFFFFF;
+  --bg-gray:#F4F4F4;
+  --bg-page:#E7E7E4;
+  --ph:#A6A6A6;
+  --ph-text:#B9B9B9;
+  --danger:#111111;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  font-family:'Noto Sans SC',sans-serif;
+  background:var(--bg-page);
+  color:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;
+  font-size:14px;line-height:1.5;
+}
+button{font-family:inherit;border:none;background:none;cursor:pointer;color:inherit;}
+input,textarea,select{font-family:inherit;color:var(--ink);}
+::placeholder{color:var(--ph-text);}
+.mono{font-family:'DM Mono',monospace;}
+
+/* ---------- 手机外壳 ---------- */
+.stage{padding:24px 0;display:flex;align-items:center;justify-content:center;width:100%;}
+.phone{
+  width:390px;height:min(844px,calc(100vh - 40px));
+  background:var(--bg);border:1.5px solid var(--ink);border-radius:34px;
+  overflow:hidden;position:relative;display:flex;flex-direction:column;
+  box-shadow:6px 6px 0 rgba(17,17,17,0.08);
+}
+.phone-notch{
+  position:absolute;top:10px;left:50%;transform:translateX(-50%);
+  width:110px;height:22px;border:1px solid var(--ink);border-radius:12px;background:#fff;z-index:60;
+}
+.statusbar{
+  height:44px;flex:0 0 44px;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 24px 4px;font-family:'DM Mono',monospace;font-size:12px;z-index:50;background:#fff;
+}
+.statusbar .icons{display:flex;gap:5px;align-items:center;}
+.screen{flex:1;display:flex;flex-direction:column;min-height:0;position:relative;background:#fff;}
+
+/* ---------- 顶部栏 ---------- */
+.app-header{
+  flex:0 0 auto;display:flex;align-items:center;gap:10px;
+  padding:10px 16px 12px;background:#fff;z-index:20;
+}
+.app-header .title{font-size:17px;font-weight:700;letter-spacing:.5px;flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.app-header .sub{font-size:11px;color:var(--ph);font-weight:400;}
+.icon-btn{
+  width:34px;height:34px;border:1px solid var(--ink);border-radius:17px;flex:0 0 34px;
+  display:flex;align-items:center;justify-content:center;background:#fff;
+}
+.icon-btn:active{background:var(--bg-gray);}
+.scroll-area{flex:1;overflow-y:auto;overscroll-behavior:contain;min-height:0;}
+.scroll-area::-webkit-scrollbar{width:0;}
+.page-foot{flex:0 0 auto;border-top:1px dashed var(--line-2);background:#fff;padding:12px 16px;}
+
+/* ---------- 底部 Tab ---------- */
+.tabbar{
+  flex:0 0 auto;display:flex;border-top:1px solid var(--line);background:#fff;
+  padding-bottom:14px;z-index:30;
+}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 0 4px;color:#ADADAD;}
+.tab-item.active{color:var(--ink);}
+.tab-item .t-label{font-size:10px;letter-spacing:1px;}
+.tab-item.active .t-label{font-weight:700;}
+
+/* ---------- 通用组件 ---------- */
+.page-body{padding:16px 16px 28px;display:flex;flex-direction:column;gap:14px;}
+.card{
+  border:1px solid var(--line);border-radius:10px;background:#fff;
+}
+.card.pad{padding:14px;}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  border:1px solid var(--ink);border-radius:8px;background:#fff;color:var(--ink);
+  font-size:13px;font-weight:500;padding:9px 14px;transition:background .12s;
+}
+.btn:active{background:var(--bg-gray);}
+.btn-primary{background:var(--ink);color:#fff;}
+.btn-primary:active{background:#333;}
+.btn-block{width:100%;}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:6px;}
+.btn-ghost-gray{border-color:var(--line-2);color:var(--ink-2);}
+.btn:disabled{border-color:var(--line-2);color:#C9C9C9;background:#fff;cursor:not-allowed;}
+.chip{
+  display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line-2);
+  border-radius:14px;padding:3px 10px;font-size:11px;color:var(--ink-2);background:#fff;
+}
+.chip.active{border-color:var(--ink);color:var(--ink);font-weight:500;background:var(--ink);color:#fff;}
+.field-label{font-size:11px;color:var(--ink-2);margin-bottom:5px;display:flex;justify-content:space-between;}
+.field-input{
+  width:100%;border:1px solid var(--line-2);border-radius:8px;padding:9px 12px;
+  font-size:13px;background:#fff;outline:none;
+}
+.field-input:focus{border-color:var(--ink);}
+textarea.field-input{resize:none;}
+.divider{border-top:1px dashed var(--line-2);margin:12px 0;}
+.row-flex{display:flex;align-items:center;gap:8px;}
+.muted{color:var(--ph);font-size:11px;}
+.small-note{font-size:11px;color:var(--ink-2);}
+
+/* ---------- 弹窗 ---------- */
+.modal-mask{
+  position:absolute;inset:0;background:rgba(17,17,17,.32);z-index:200;
+  display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .18s ease;
+}
+.modal-mask.center{align-items:center;padding:24px;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal{
+  width:100%;max-width:358px;background:#fff;border:1.5px solid var(--ink);
+  border-radius:14px;max-height:82%;display:flex;flex-direction:column;
+  animation:slideUp .22s cubic-bezier(.22,1,.36,1);box-shadow:4px 4px 0 rgba(17,17,17,.12);
+}
+.modal-head{display:flex;align-items:center;padding:14px 16px 10px;gap:8px;flex:0 0 auto;}
+.modal-head .m-title{font-size:15px;font-weight:700;flex:1;}
+.modal-body{padding:2px 16px 16px;overflow-y:auto;}
+.modal-body::-webkit-scrollbar{width:0;}
+.modal-foot{display:flex;gap:10px;padding:12px 16px 16px;border-top:1px dashed var(--line-2);flex:0 0 auto;}
+
+/* ---------- Toast ---------- */
+.toast-host{position:absolute;left:0;right:0;bottom:96px;display:flex;justify-content:center;z-index:400;pointer-events:none;}
+.toast{
+  background:var(--ink);color:#fff;border-radius:8px;padding:9px 16px;font-size:12px;
+  animation:slideUp .2s ease;box-shadow:2px 2px 0 rgba(17,17,17,.15);max-width:80%;
+}
+
+/* ---------- 占位图 ---------- */
+.ph-img{position:relative;overflow:hidden;background:#F4F4F4;flex:0 0 auto;}
+.ph-img svg{position:absolute;inset:0;width:100%;height:100%;}
+.ph-img .ph-cap{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:10px;color:var(--ph-text);letter-spacing:2px;
+}
+
+/* ---------- 复选框 ---------- */
+.cbx{
+  width:18px;height:18px;border:1.5px solid var(--ink);border-radius:4px;background:#fff;
+  flex:0 0 18px;display:flex;align-items:center;justify-content:center;
+}
+.cbx.on{background:var(--ink);}
+
+/* ---------- 歌单卡片 ---------- */
+.playlist-card{display:flex;gap:12px;padding:12px;}
+.playlist-card .p-cover{width:74px;height:74px;}
+.playlist-card .p-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;}
+.p-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.p-meta{font-size:11px;color:var(--ink-2);display:flex;gap:10px;flex-wrap:wrap;}
+.p-tags{display:flex;gap:5px;flex-wrap:wrap;}
+.tag-mini{font-size:10px;border:1px solid var(--line-2);border-radius:3px;padding:1px 5px;color:var(--ink-2);}
+.p-actions{display:flex;gap:6px;}
+.song-item{display:flex;gap:10px;padding:12px;align-items:flex-start;}
+.song-item .s-main{flex:1;min-width:0;}
+.s-name{font-size:14px;font-weight:500;}
+.s-sub{font-size:11px;color:var(--ink-2);margin-top:2px;}
+.s-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;}
+
+/* ---------- 标签筛选行（横滑无滑轨） ---------- */
+.tag-row{overflow-x:auto;flex-wrap:nowrap;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.tag-row::-webkit-scrollbar{display:none;height:0;}
+
+/* ---------- 玩法卡片（明信片式，两列） ---------- */
+.play-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.play-card{
+  display:flex;flex-direction:column;align-items:stretch;gap:8px;
+  padding:10px;width:100%;text-align:center;cursor:pointer;
+}
+.play-card:active{background:var(--bg-gray);}
+.postcard-cover{position:relative;display:block;width:100%;}
+.postcard-img{width:100% !important;height:112px !important;}
+.postcard-stamp{
+  position:absolute;top:6px;right:6px;width:16px;height:19px;
+  border:1px dashed var(--line-2);border-radius:2px;background:#fff;
+  display:flex;align-items:center;justify-content:center;color:var(--ph);
+}
+.postcard-badge{position:absolute;top:6px;right:6px;}
+
+/* ---------- 转盘 ---------- */
+.wheel-wrap{position:relative;width:270px;height:270px;margin:6px auto;}
+.wheel-pointer{
+  position:absolute;top:-6px;left:50%;transform:translateX(-50%);z-index:5;
+  width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;
+  border-top:18px solid var(--ink);
+}
+.wheel-disc{width:100%;height:100%;transition:transform 3.6s cubic-bezier(.15,.9,.28,1);}
+.wheel-hub{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:6;
+  width:56px;height:56px;border-radius:50%;background:#fff;border:1.5px solid var(--ink);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;
+}
+
+/* ---------- 列表行（我的/标签管理） ---------- */
+.list-row{
+  display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px dashed var(--line-2);
+  background:#fff;touch-action:pan-y;
+}
+.list-row:last-child{border-bottom:none;}
+.list-row.dragging{background:var(--bg-gray);border:1px dashed var(--ink);z-index:5;position:relative;box-shadow:2px 2px 0 rgba(17,17,17,.1);}
+
+/* ---------- 打印小票 ---------- */
+.receipt{
+  border:1px dashed var(--ink);background:#fff;padding:14px 12px;font-family:'DM Mono',monospace;
+  font-size:11px;line-height:1.9;color:var(--ink);
+}
+.receipt .r-dash{border-top:1px dashed var(--ink);margin:6px 0;}
+.receipt .r-title{text-align:center;font-weight:700;font-size:13px;letter-spacing:2px;}
+
+/* ---------- 打印机（打印歌单小票页） ---------- */
+.printer-stage{display:flex;flex-direction:column;align-items:center;padding:14px 0 2px;}
+.printer{width:216px;position:relative;z-index:2;}
+.pr-paper-in{width:118px;height:15px;border:1.5px solid var(--ink);border-bottom:none;border-radius:5px 5px 0 0;margin:0 auto;background:#fff;}
+.pr-body{
+  border:1.5px solid var(--ink);border-radius:12px;background:#fff;height:82px;
+  padding:12px 14px 10px;display:flex;flex-direction:column;justify-content:space-between;
+  box-shadow:3px 3px 0 rgba(17,17,17,.08);
+}
+.pr-vents{display:flex;gap:5px;}
+.pr-vents i{display:block;width:20px;height:1px;background:var(--line-2);}
+.pr-row{display:flex;align-items:center;justify-content:space-between;}
+.pr-brand{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--ph);}
+.pr-light{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--ink);background:#fff;}
+.printing .pr-light{background:var(--ink);animation:prBlink .5s steps(2) infinite;}
+@keyframes prBlink{50%{background:#fff;}}
+.printing .printer{animation:prShake .4s ease-in-out 3;}
+@keyframes prShake{25%{transform:translateX(-1px);}75%{transform:translateX(1px);}}
+.pr-mouth{width:150px;height:7px;margin:0 auto;background:var(--ink);border-radius:0 0 6px 6px;}
+.pr-track{
+  display:grid;grid-template-rows:0fr;width:180px;margin:-2px auto 0;z-index:1;
+  transition:grid-template-rows 1s cubic-bezier(.3,.85,.35,1);
+}
+.printing .pr-track,.done .pr-track{grid-template-rows:1fr;}
+.pr-track-inner{min-height:0;overflow:hidden;}
+.pr-track .receipt{border-top:none;}
+.pr-status{margin-top:10px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--ph);}
+.s-note{
+  margin-top:6px;padding-top:6px;border-top:1px dashed var(--line-2);
+  font-size:11px;color:var(--ink-2);line-height:1.6;
+}
+
+/* ---------- 登录页 ---------- */
+.login-hero{padding:34px 24px 10px;display:flex;flex-direction:column;gap:8px;}
+.login-hero .h1{font-size:30px;font-weight:700;letter-spacing:1px;}
+.login-hero .h1 .cursor{display:inline-block;width:14px;height:26px;border:1.5px solid var(--ink);vertical-align:-3px;margin-left:4px;}
+.login-hero .slogan{font-size:12px;color:var(--ink-2);letter-spacing:2px;}
+.login-form{padding:18px 24px;display:flex;flex-direction:column;gap:16px;}
+.login-third{display:flex;gap:12px;padding:0 24px;}
+.third-btn{
+  flex:1;border:1px solid var(--ink);border-radius:10px;padding:12px 0;display:flex;flex-direction:column;
+  align-items:center;gap:6px;font-size:11px;color:var(--ink-2);background:#fff;
+}
+.third-btn:active{background:var(--bg-gray);}
+
+/* ---------- 待开发占位 ---------- */
+.dev-card{
+  border:1px dashed #B9B9B9;border-radius:10px;padding:16px;display:flex;align-items:center;gap:12px;
+  background:#FAFAFA;
+}
+.dev-badge{
+  font-size:10px;border:1px solid var(--line-2);border-radius:3px;padding:1px 6px;color:var(--ph);
+  font-family:'DM Mono',monospace;
+}
+
+@media (max-width:500px){
+  .stage{padding:0;}
+  .phone{width:100%;height:100dvh;border-radius:0;border:none;box-shadow:none;}
+  .phone-notch{display:none;}
+}
+
+/* ========== 移动端全屏适配（iPhone 等全面屏手机） ========== */
+/* iOS Safari 中 overflow:hidden 无法阻止触摸滚动，必须用 position:fixed */
+html{
+  width:100%;height:100%;overflow:hidden !important;
+}
+body{
+  position: fixed !important;
+  top:0 !important;left:0 !important;
+  width:100% !important;height:100% !important;
+  padding:0;margin:0;overflow:hidden !important;
+  background:#fff;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-touch-callout:none;
+}
+#root, .stage, .phone, .screen{
+  width:100% !important;
+  height:100dvh !important;
+  overflow:hidden !important;
+}
+.stage{padding:0 !important;}
+.phone{
+  border-radius:0 !important;
+  border:none !important;
+  box-shadow:none !important;
+  background:#fff !important;
+}
+.phone-notch{display:none !important;}
+/* 隐藏 statusbar（用系统真实状态栏） */
+.statusbar{display:none !important;}
+
+/* ===== 顶部适配：导航栏紧贴灵动岛下方 ===== */
+.app-header{
+  padding-top: calc(env(safe-area-inset-top) - 4px) !important;
+  padding-bottom: 8px !important;
+}
+.login-hero{
+  padding-top: calc(env(safe-area-inset-top) + 16px) !important;
+}
+
+/* ===== 滚动区域：底部留出 tabbar 空间 + 阻止滚动传播 ===== */
+.scroll-area{
+  padding-bottom: calc(46px + env(safe-area-inset-bottom)) !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ===== 底部 tabbar 适配：fixed 固定到底部 ===== */
+.tabbar{
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  padding-top: 4px !important;
+  padding-bottom: calc(2px + env(safe-area-inset-bottom)) !important;
+  height: auto !important;
+  z-index: 100 !important;
+  background:#fff !important;
+  border-top:1px solid var(--line) !important;
+}
+.tab-item{
+  padding: 0 0 2px !important;
+}
+
+/* ===== Modal 弹窗修复：fixed 定位 + 阻止滚动传播 ===== */
+.modal-mask{
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 200 !important;
+  overflow: hidden !important;
+  overscroll-behavior: contain !important;
+}
+.modal{
+  max-height: 82vh !important;
+}
+.modal-body{
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch;
+}
+.modal.bottom-sheet .sheet-body{
+  padding-bottom:calc(20px + env(safe-area-inset-bottom)) !important;
+}
+/* 打印小票场景适配 */
+.scene-full .screen{padding-top:0 !important;}
+.scene-full .app-header{padding-top: calc(env(safe-area-inset-top) + 6px) !important;}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="phone" id="phone">
+    <div class="phone-notch"></div>
+    <div class="screen" id="root"></div>
+  </div>
+</div>
+
+<script src="https://sf3-scmcdn-cn.feishucdn.com/obj/feishu-static/miaoda/coding-unpkg-sdk/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://sf3-scmcdn-cn.feishucdn.com/obj/feishu-static/miaoda/coding-unpkg-sdk/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="https://sf3-scmcdn-cn.feishucdn.com/obj/feishu-static/miaoda/coding-unpkg-sdk/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="js/data.jsx"></script>
+<script type="text/babel" src="js/ui.jsx"></script>
+<script type="text/babel" src="js/login.jsx"></script>
+<script type="text/babel" src="js/home.jsx"></script>
+<script type="text/babel" src="js/detail.jsx"></script>
+<script type="text/babel" src="js/play.jsx"></script>
+<script type="text/babel" src="js/mine.jsx"></script>
+<script type="text/babel" src="js/app-mobile.jsx"></script>
+<script>
+// 禁止双指缩放
+document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+// 禁止双击缩放
+let lastTouchEnd = 0;
+document.addEventListener('touchend', function(e) {
+  const now = Date.now();
+  if (now - lastTouchEnd <= 300) { e.preventDefault(); }
+  lastTouchEnd = now;
+}, { passive: false });
+
+// iOS Safari 阻止非滚动区域的触摸滚动
+// 只允许 .scroll-area 和 .modal-body 内部滚动，其他区域禁止
+document.addEventListener('touchmove', function(e) {
+  // 检查触摸目标是否在允许滚动的区域内
+  var target = e.target;
+  var allowScroll = false;
+  // 向上查找 DOM 树，检查是否在允许滚动的容器内
+  while (target && target !== document.body) {
+    if (target.classList && (target.classList.contains('scroll-area') || target.classList.contains('modal-body'))) {
+      allowScroll = true;
+      break;
+    }
+    target = target.parentElement;
+  }
+  // 如果不在允许滚动的区域内，阻止触摸滚动
+  if (!allowScroll) {
+    e.preventDefault();
+  }
+}, { passive: false });
+</script>
+</body>
+</html>
